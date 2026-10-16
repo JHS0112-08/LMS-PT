@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modular LMS Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    body { font-family: 'Pretendard', sans-serif; }
+    .fade-in { animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .markdown-body h1 { font-size: 1.4rem; font-weight: 700; margin: 0.8rem 0 0.4rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.2rem; }
+    .markdown-body h2 { font-size: 1.2rem; font-weight: 700; margin: 0.7rem 0 0.35rem; }
+    .markdown-body h3 { font-size: 1.05rem; font-weight: 600; margin: 0.6rem 0 0.3rem; }
+    .markdown-body p { margin-bottom: 0.5rem; line-height: 1.6; }
+    .markdown-body ul { list-style-type: disc; padding-left: 1.4rem; margin-bottom: 0.5rem; }
+    .markdown-body ol { list-style-type: decimal; padding-left: 1.4rem; margin-bottom: 0.5rem; }
+    .markdown-body pre { background-color: #0f172a; color: #f8fafc; padding: 0.75rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 0.6rem; font-family: monospace; font-size: 0.82rem; }
+    .markdown-body code { background-color: #f1f5f9; color: #0f172a; padding: 0.12rem 0.3rem; border-radius: 0.25rem; font-family: monospace; font-size: 0.85em; }
+    .markdown-body pre code { background-color: transparent; color: inherit; padding: 0; }
+    .markdown-body blockquote { border-left: 4px solid #4f46e5; padding-left: 0.75rem; color: #475569; font-style: italic; margin-bottom: 0.5rem; }
+    .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.6rem; font-size: 0.85rem; }
+    .markdown-body th, .markdown-body td { border: 1px solid #cbd5e1; padding: 0.4rem 0.6rem; text-align: left; }
+    .markdown-body th { background-color: #f8fafc; font-weight: 600; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #certificate-print-area, #certificate-print-area * { visibility: visible; }
+      #certificate-print-area {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 32px;
+        border: 4px double #1e293b !important;
+        box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ==================== 1. 초기 셋업(Setup) 화면 ==================== -->
+  <div id="setup-view" class="min-h-screen flex items-center justify-center p-4 bg-slate-900">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 fade-in space-y-6">
+      <div class="flex items-center gap-4 border-b border-slate-200 pb-4">
+        <div class="w-12 h-12 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl shrink-0">
+          <i class="fa-solid fa-sliders"></i>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-slate-900">LMS 초기 환경 셋업</h1>
+          <p class="text-xs sm:text-sm text-slate-500">사이트 이름, 로고, 최초 어드민 계정 및 활성화할 학습 기능을 설정하세요.</p>
+        </div>
+      </div>
+
+      <form id="setup-form" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">LMS 사이트 이름 <span class="text-red-500">*</span></label>
+            <input type="text" id="setup-name" required placeholder="예: 오픈 러닝 플랫폼"
+              class="w-full px-3.5 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm">
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1.5">로고 이미지 (미지정 시 기본 로고 자동 적용)</label>
+            <div class="flex items-center gap-3">
+              <div id="setup-logo-preview" class="w-11 h-11 rounded-xl border border-slate-200 bg-indigo-600 text-white flex items-center justify-center overflow-hidden shrink-0">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+              </div>
+              <input type="file" id="setup-logo-file" accept="image/*"
+                class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
+              <button type="button" onclick="resetSetupLogo()" class="px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-100 shrink-0">기본로고</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 어드민 계정 생성 (초기 셋업에서만 지정) -->
+        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800"><i class="fa-solid fa-user-shield mr-1.5 text-indigo-600"></i>최초 어드민(Admin) 계정 설정</span>
+            <span class="text-[11px] text-slate-500">어드민은 모든 글·댓글·강의·권한을 제어합니다</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">어드민 아이디 <span class="text-red-500">*</span></label>
+              <input type="text" id="setup-admin-id" required placeholder="어드민 아이디 입력" class="w-full px-3 py-1.5 border rounded-lg text-xs bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">어드민 표시 이름 <span class="text-red-500">*</span></label>
+              <input type="text" id="setup-admin-name" required placeholder="어드민 이름 입력" class="w-full px-3 py-1.5 border rounded-lg text-xs bg-white">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-600 mb-1">어드민 비밀번호 <span class="text-red-500">*</span></label>
+              <input type="password" id="setup-admin-pw" required placeholder="어드민 비밀번호 입력" class="w-full px-3 py-1.5 border rounded-lg text-xs bg-white">
+            </div>
+          </div>
+        </div>
+
+        <!-- 활성화할 기능 선택 -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-slate-700">활성화할 LMS 기능 선택</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-courses" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">강의실 및 수료 뱃지</div>
+                <div class="text-[11px] text-slate-500">강의 개설, 진도 체크, 완강 뱃지</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-board" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">마크다운 게시판 & 댓글</div>
+                <div class="text-[11px] text-slate-500">파일 첨부, 글/댓글 수정 및 삭제</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-quiz" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">퀴즈 및 평가</div>
+                <div class="text-[11px] text-slate-500">강사/어드민 문제 출제 및 채점</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-sandbox" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">코딩 실습 샌드박스</div>
+                <div class="text-[11px] text-slate-500">코드 실행 및 정적 보안 인스펙션</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-rubric" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">과제 제출 & 루브릭 평가</div>
+                <div class="text-[11px] text-slate-500">과제물 제출 및 다면 평가 피드백</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-flashcard" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">플래시카드 암기장</div>
+                <div class="text-[11px] text-slate-500">핵심 개념 카드 앞·뒷면 뒤집기</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-cert" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">수료증 및 학습 리포트</div>
+                <div class="text-[11px] text-slate-500">이수 내역 및 뱃지 증명서 인쇄</div>
+              </div>
+            </label>
+
+            <label class="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 hover:bg-slate-50 cursor-pointer">
+              <input type="checkbox" id="feat-devops" checked class="mt-0.5 w-4 h-4 text-indigo-600 rounded">
+              <div>
+                <div class="font-bold text-slate-800">시스템 백업/롤백 & 배포</div>
+                <div class="text-[11px] text-slate-500">기준선(Baseline) 복원 및 CI/CD</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" class="w-full py-3 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-lg transition">
+          셋업 완료 및 LMS 시작하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 2. 메인 LMS 화면 ==================== -->
+  <div id="app-view" class="hidden flex-1 flex flex-col">
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print">
+      <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 cursor-pointer shrink-0" onclick="switchTab('dashboard')">
+          <div id="nav-logo" class="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center overflow-hidden"></div>
+          <span id="nav-title" class="font-bold text-base sm:text-lg text-slate-900">LMS</span>
+        </div>
+
+        <nav id="nav-tabs" class="flex items-center gap-1 overflow-x-auto py-1"></nav>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <div id="user-status-bar" class="flex items-center gap-1.5"></div>
+          <button onclick="openBadgeModal()" class="px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa-solid fa-medal"></i>
+            <span class="hidden sm:inline">내 뱃지</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 py-6 flex-1">
+      <section id="tab-dashboard" class="tab-panel fade-in space-y-6"></section>
+      <section id="tab-courses" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-board" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-quiz" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-sandbox" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-rubric" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-flashcard" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-cert" class="tab-panel hidden fade-in space-y-6"></section>
+      <section id="tab-admin" class="tab-panel hidden fade-in space-y-6"></section>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-4 text-xs text-slate-400 no-print">
+      <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+        <span id="footer-title">Modular LMS Platform</span>
+        <span>Role-Based Access Control (Admin / Instructor / Student)</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ==================== 3. 개인 뱃지 보관함 및 탈부착 모달 ==================== -->
+  <div id="badge-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl fade-in space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <div>
+          <h3 class="text-base font-bold text-slate-900">내 뱃지 보관함 및 탈부착 관리</h3>
+          <p class="text-xs text-slate-500">소유한 뱃지 내에서 원하는 뱃지를 착용하거나 해제할 수 있습니다.</p>
+        </div>
+        <button onclick="closeBadgeModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="badge-inventory-list" class="space-y-2 max-h-96 overflow-y-auto pr-1"></div>
+      <div class="pt-2 border-t flex justify-between items-center text-xs text-slate-500">
+        <span>착용한 뱃지는 상단 프로필, 게시글, 댓글 작성자 이름 옆에 표시됩니다.</span>
+        <button onclick="closeBadgeModal()" class="px-4 py-2 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-700">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 4. 로그인 / 회원가입 모달 (계정 노출 없음) ==================== -->
+  <div id="auth-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl fade-in">
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h3 id="auth-modal-title" class="text-base font-bold">로그인</h3>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <!-- 로그인 폼 -->
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">아이디</label>
+          <input type="text" id="login-id" required placeholder="아이디를 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
+          <input type="password" id="login-pw" required placeholder="비밀번호를 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 text-white rounded-lg font-semibold text-xs hover:bg-indigo-700">로그인</button>
+        <p class="text-center text-xs text-slate-500">
+          계정이 없으신가요? <a href="#" onclick="toggleAuthMode('register'); return false;" class="text-indigo-600 font-semibold underline">회원가입</a>
+        </p>
+      </form>
+
+      <!-- 회원가입 폼 (오직 학생 / 강사만 선택 가능, 어드민 노출 없음) -->
+      <form id="register-form" class="hidden space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">이름 (닉네임)</label>
+          <input type="text" id="reg-name" required placeholder="이름을 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">아이디</label>
+          <input type="text" id="reg-id" required placeholder="사용할 아이디를 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">비밀번호</label>
+          <input type="password" id="reg-pw" required placeholder="비밀번호를 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">가입 유형 선택</label>
+          <select id="reg-role" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <option value="student">학생 (강의 수강 / 실습 / 과제 제출 / 게시글·댓글 작성)</option>
+            <option value="instructor">강사 (강의 개설 / 퀴즈 출제 / 공지 및 학습 지도)</option>
+          </select>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-emerald-600 text-white rounded-lg font-semibold text-xs hover:bg-emerald-700">회원가입 완료</button>
+        <p class="text-center text-xs text-slate-500">
+          이미 계정이 있으신가요? <a href="#" onclick="toggleAuthMode('login'); return false;" class="text-indigo-600 font-semibold underline">로그인 화면으로</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== 5. 범용 수정(Edit) 모달 ==================== -->
+  <div id="edit-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-xl fade-in space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 id="edit-modal-title" class="text-base font-bold text-slate-900">내용 수정</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="edit-modal-body" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- ==================== 6. 메인 애플리케이션 스크립트 ==================== -->
+  <script>
+    const STORAGE_KEY = 'MODULAR_LMS_CLEAN_STATE_V5';
+    const BASELINE_KEY = 'MODULAR_LMS_CLEAN_BASELINE_V5';
+
+    const DEFAULT_SVG_LOGO = '<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>';
+
+    const FORBIDDEN_EXTENSIONS = ['exe', 'sh', 'bat', 'cmd', 'jsp', 'php', 'asp', 'aspx', 'dll', 'msi', 'vbs'];
+    const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
+    const CODE_FENCE = '\x60\x60\x60';
+
+    function computeHash(str) {
+      let h1 = 0xdeadbeef ^ str.length;
+      let h2 = 0x41c6ce57 ^ str.length;
+      for (let i = 0, ch; i < str.length; i++) {
+        ch = str.charCodeAt(i);
+        h1 = Math.imul(h1 ^ ch, 2654435761);
+        h2 = Math.imul(h2 ^ ch, 1597334677);
+      }
+      h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+      h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+      return 'h_' + (h2 >>> 0).toString(16).padStart(8, '0') + (h1 >>> 0).toString(16).padStart(8, '0');
+    }
+
+    function safeMarkdown(mdText) {
+      const text = String(mdText || '');
+      let html = text;
+      if (window.marked && typeof window.marked.parse === 'function') {
+        html = window.marked.parse(text);
+      } else {
+        html = text.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+      }
+      if (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function') {
+        return window.DOMPurify.sanitize(html);
+      }
+      return html;
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // 초기 상태 데이터 (기본 퀴즈, 기본 게시글, 기본 강의, 기본 계정 등 더미 데이터 모두 제거)
+    const initialData = {
+      isSetupDone: false,
+      baselineTimestamp: '-',
+      config: {
+        name: '',
+        logoDataUrl: '',
+        features: {
+          courses: true,
+          board: true,
+          quiz: true,
+          sandbox: true,
+          rubric: true,
+          flashcard: true,
+          cert: true,
+          devops: true
+        }
+      },
+      currentUser: null,
+      users: [],
+      badges: [
+        { id: 'badge-quiz-master', name: '평가 우수자', desc: '퀴즈 평가에서 80점 이상 달성 시 획득', color: 'bg-purple-600 text-white' },
+        { id: 'badge-sandbox-pro', name: '코드 실습 탐구자', desc: '코딩 샌드박스 실습 3회 이상 수행 시 획득', color: 'bg-cyan-600 text-white' }
+      ],
+      courses: [],
+      posts: [],
+      quizzes: [],
+      submissions: [],
+      flashcards: [],
+      quizScores: {},
+      inspectionRules: [
+        { id: 'rule-1', name: '무한 루프 금지', severity: 'Blocker', pattern: '(for\\s*\\(\\s*;\\s*;\\s*\\)|while\\s*\\(\\s*true\\s*\\))', desc: '종료 조건 없는 루프 금지' },
+        { id: 'rule-2', name: '비밀번호 하드코딩 위반', severity: 'Blocker', pattern: '(password|passwd|secret|apiKey)\\s*[:=]\\s*[\'"][^\'"]+[\'"]', desc: '민감정보 소스 내 하드코딩 금지' },
+        { id: 'rule-3', name: '취약 함수 eval() 금지', severity: 'Critical', pattern: '\\beval\\s*\\(', desc: 'eval() 함수 호출 금지' }
+      ]
+    };
+
+    let state = loadState();
+    let activeTab = 'dashboard';
+    let selectedCourseId = null;
+    let tempSetupLogo = '';
+    let tempAttachments = [];
+    let currentCardIndex = 0;
+    let isCardFlipped = false;
+
+    function loadState() {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (!saved) return JSON.parse(JSON.stringify(initialData));
+        return JSON.parse(saved);
+      } catch (e) {
+        return JSON.parse(JSON.stringify(initialData));
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function getCurrentUserObj() {
+      if (!state.currentUser) return null;
+      return state.users.find(u => u.id === state.currentUser) || null;
+    }
+
+    // 권한 판별 헬퍼 함수 (오직 admin, instructor, student만 존재)
+    function isAdminUser(user) {
+      const u = user || getCurrentUserObj();
+      return Boolean(u && u.role === 'admin');
+    }
+
+    function isInstructorOrAdmin(user) {
+      const u = user || getCurrentUserObj();
+      return Boolean(u && (u.role === 'admin' || u.role === 'instructor'));
+    }
+
+    // 본인 작성 항목이거나 어드민이면 수정/삭제 허용
+    function canModify(authorId) {
+      const u = getCurrentUserObj();
+      if (!u) return false;
+      return u.role === 'admin' || u.id === authorId;
+    }
+
+    function getRoleLabel(role) {
+      if (role === 'admin') return { text: '어드민', cls: 'bg-red-100 text-red-700 font-bold' };
+      if (role === 'instructor') return { text: '강사', cls: 'bg-amber-100 text-amber-800 font-bold' };
+      return { text: '학생', cls: 'bg-emerald-100 text-emerald-800 font-semibold' };
+    }
+
+    function getBadgeById(bid) {
+      return state.badges.find(b => b.id === bid);
+    }
+
+    function renderEquippedBadgesHtml(userObj) {
+      if (!userObj || !userObj.equippedBadges || userObj.equippedBadges.length === 0) return '';
+      return userObj.equippedBadges.map(bid => {
+        const b = getBadgeById(bid);
+        if (!b) return '';
+        return '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ' + b.color + '" title="' + escapeHtml(b.desc) + '"><i class="fa-solid fa-award"></i>' + escapeHtml(b.name) + '</span>';
+      }).join(' ');
+    }
+
+    function renderAuthorTag(authorId, authorName) {
+      const u = state.users.find(x => x.id === authorId);
+      const roleInfo = u ? getRoleLabel(u.role) : { text: '회원', cls: 'bg-slate-100 text-slate-600' };
+      const badges = u ? renderEquippedBadgesHtml(u) : '';
+      return '<span class="inline-flex items-center gap-1.5 flex-wrap">' +
+        '<span class="px-1.5 py-0.5 rounded text-[10px] ' + roleInfo.cls + '">' + roleInfo.text + '</span>' +
+        '<span class="font-bold text-slate-800">' + escapeHtml(u ? u.name : authorName) + '</span>' +
+        badges +
+        '</span>';
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initSetupListeners();
+      initAuthListeners();
+      if (!state.isSetupDone || state.users.length === 0) {
+        showSetupView();
+      } else {
+        showAppView();
+      }
+    });
+
+    // ==================== 1. 초기 셋업(Setup) 처리 ====================
+    function initSetupListeners() {
+      document.getElementById('setup-logo-file').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          tempSetupLogo = ev.target.result;
+          document.getElementById('setup-logo-preview').innerHTML = '<img src="' + tempSetupLogo + '" class="w-full h-full object-cover">';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('setup-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const lmsName = document.getElementById('setup-name').value.trim();
+        const adminId = document.getElementById('setup-admin-id').value.trim();
+        const adminName = document.getElementById('setup-admin-name').value.trim();
+        const adminPw = document.getElementById('setup-admin-pw').value.trim();
+
+        if (!lmsName || !adminId || !adminName || !adminPw) {
+          alert('필수 항목을 모두 입력해 주세요.');
+          return;
+        }
+
+        state.config.name = lmsName;
+        state.config.logoDataUrl = tempSetupLogo;
+        state.config.features = {
+          courses: document.getElementById('feat-courses').checked,
+          board: document.getElementById('feat-board').checked,
+          quiz: document.getElementById('feat-quiz').checked,
+          sandbox: document.getElementById('feat-sandbox').checked,
+          rubric: document.getElementById('feat-rubric').checked,
+          flashcard: document.getElementById('feat-flashcard').checked,
+          cert: document.getElementById('feat-cert').checked,
+          devops: document.getElementById('feat-devops').checked
+        };
+
+        // 기존 어드민 갱신 또는 최초 어드민 계정 생성
+        const existingAdmin = state.users.find(u => u.role === 'admin');
+        if (existingAdmin) {
+          existingAdmin.id = adminId;
+          existingAdmin.name = adminName;
+          existingAdmin.pwHash = computeHash(adminPw);
+          state.currentUser = existingAdmin.id;
+        } else {
+          const newAdmin = {
+            id: adminId,
+            name: adminName,
+            pwHash: computeHash(adminPw),
+            role: 'admin',
+            ownedBadges: [],
+            equippedBadges: [],
+            sandboxRuns: 0
+          };
+          state.users.push(newAdmin);
+          state.currentUser = newAdmin.id;
+        }
+
+        state.isSetupDone = true;
+        state.baselineTimestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+        saveState();
+        try {
+          localStorage.setItem(BASELINE_KEY, JSON.stringify(state));
+        } catch (err) {}
+        showAppView();
+      });
+    }
+
+    function resetSetupLogo() {
+      tempSetupLogo = '';
+      document.getElementById('setup-logo-file').value = '';
+      document.getElementById('setup-logo-preview').innerHTML = DEFAULT_SVG_LOGO;
+    }
+
+    function showSetupView() {
+      document.getElementById('setup-view').classList.remove('hidden');
+      document.getElementById('app-view').classList.add('hidden');
+      document.getElementById('setup-name').value = state.config.name || '';
+
+      const adminUser = state.users.find(u => u.role === 'admin');
+      if (adminUser) {
+        document.getElementById('setup-admin-id').value = adminUser.id;
+        document.getElementById('setup-admin-name').value = adminUser.name;
+        document.getElementById('setup-admin-pw').value = '';
+        document.getElementById('setup-admin-pw').placeholder = '새로운 어드민 비밀번호 입력';
+      }
+
+      const f = state.config.features;
+      document.getElementById('feat-courses').checked = f.courses;
+      document.getElementById('feat-board').checked = f.board;
+      document.getElementById('feat-quiz').checked = f.quiz;
+      document.getElementById('feat-sandbox').checked = f.sandbox;
+      document.getElementById('feat-rubric').checked = f.rubric;
+      document.getElementById('feat-flashcard').checked = f.flashcard;
+      document.getElementById('feat-cert').checked = f.cert;
+      document.getElementById('feat-devops').checked = f.devops;
+
+      if (state.config.logoDataUrl) {
+        tempSetupLogo = state.config.logoDataUrl;
+        document.getElementById('setup-logo-preview').innerHTML = '<img src="' + tempSetupLogo + '" class="w-full h-full object-cover">';
+      } else {
+        document.getElementById('setup-logo-preview').innerHTML = DEFAULT_SVG_LOGO;
+      }
+    }
+
+    // ==================== 2. 메인 화면 및 상단 네비게이션 ====================
+    function showAppView() {
+      document.getElementById('setup-view').classList.add('hidden');
+      document.getElementById('app-view').classList.remove('hidden');
+      renderHeader();
+      switchTab(activeTab || 'dashboard');
+    }
+
+    function renderHeader() {
+      document.getElementById('nav-title').textContent = state.config.name || 'LMS';
+      document.getElementById('footer-title').textContent = state.config.name || 'LMS';
+
+      const logoEl = document.getElementById('nav-logo');
+      logoEl.innerHTML = state.config.logoDataUrl
+        ? '<img src="' + state.config.logoDataUrl + '" class="w-full h-full object-cover">'
+        : DEFAULT_SVG_LOGO;
+
+      const user = getCurrentUserObj();
+      const f = state.config.features;
+      const tabs = [
+        { id: 'dashboard', label: '대시보드', icon: 'fa-house', enabled: true },
+        { id: 'courses', label: '강의실', icon: 'fa-book-open', enabled: f.courses },
+        { id: 'board', label: '게시판', icon: 'fa-comments', enabled: f.board },
+        { id: 'quiz', label: '퀴즈/평가', icon: 'fa-list-check', enabled: f.quiz },
+        { id: 'sandbox', label: '코딩 샌드박스', icon: 'fa-code', enabled: f.sandbox },
+        { id: 'rubric', label: '과제/루브릭', icon: 'fa-clipboard-check', enabled: f.rubric },
+        { id: 'flashcard', label: '플래시카드', icon: 'fa-layer-group', enabled: f.flashcard },
+        { id: 'cert', label: '수료증/리포트', icon: 'fa-certificate', enabled: f.cert },
+        { id: 'admin', label: '어드민 관리', icon: 'fa-user-shield', enabled: isAdminUser(user) }
+      ];
+
+      document.getElementById('nav-tabs').innerHTML = tabs.filter(t => t.enabled).map(t => `
+        <button onclick="switchTab('${t.id}')"
+          class="px-2.5 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 whitespace-nowrap ${activeTab === t.id ? 'bg-indigo-600 text-white' : 'text-slate-600 hover:bg-slate-100'}">
+          <i class="fa-solid ${t.icon}"></i>
+          <span>${t.label}</span>
+        </button>
+      `).join('');
+
+      const statusBar = document.getElementById('user-status-bar');
+      if (user) {
+        const rInfo = getRoleLabel(user.role);
+        statusBar.innerHTML = `
+          <div class="hidden lg:flex items-center gap-1.5">
+            <span class="px-2 py-0.5 rounded text-[11px] ${rInfo.cls}">${rInfo.text}</span>
+            <span class="text-xs font-bold text-slate-800">${escapeHtml(user.name)}</span>
+            <div class="flex items-center gap-1">${renderEquippedBadgesHtml(user)}</div>
+          </div>
+          <button onclick="openAuthModal()" class="px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg hover:bg-slate-100 font-medium">
+            계정 전환 / 회원가입
+          </button>
+        `;
+      } else {
+        statusBar.innerHTML = `
+          <button onclick="openAuthModal()" class="px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">
+            로그인 / 회원가입
+          </button>
+        `;
+      }
+    }
+
+    function switchTab(tabId) {
+      if (tabId === 'admin' && !isAdminUser()) {
+        tabId = 'dashboard';
+      }
+      activeTab = tabId;
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      const panel = document.getElementById('tab-' + tabId);
+      if (panel) panel.classList.remove('hidden');
+
+      renderHeader();
+      if (tabId === 'dashboard') renderDashboard();
+      if (tabId === 'courses') renderCourses();
+      if (tabId === 'board') renderBoard();
+      if (tabId === 'quiz') renderQuiz();
+      if (tabId === 'sandbox') renderSandbox();
+      if (tabId === 'rubric') renderRubric();
+      if (tabId === 'flashcard') renderFlashcard();
+      if (tabId === 'cert') renderCertificate();
+      if (tabId === 'admin') renderAdminPanel();
+    }
+
+    // ==================== 3. 개인 뱃지 지급 및 탈부착 관리 ====================
+    function awardBadgeIfNotOwned(badgeId) {
+      const user = getCurrentUserObj();
+      if (!user) return;
+      if (!user.ownedBadges.includes(badgeId)) {
+        user.ownedBadges.push(badgeId);
+        if (!user.equippedBadges.includes(badgeId)) {
+          user.equippedBadges.push(badgeId);
+        }
+        saveState();
+        const badge = getBadgeById(badgeId);
+        if (badge) {
+          alert("[뱃지 획득] '" + badge.name + "' 뱃지를 획득하여 자동 착용되었습니다! 상단 [내 뱃지] 메뉴에서 탈부착할 수 있습니다.");
+        }
+        renderHeader();
+      }
+    }
+
+    function openBadgeModal() {
+      const user = getCurrentUserObj();
+      if (!user) {
+        alert('로그인이 필요합니다.');
+        openAuthModal();
+        return;
+      }
+      const listEl = document.getElementById('badge-inventory-list');
+      const myBadges = state.badges.filter(b => user.ownedBadges.includes(b.id));
+
+      if (myBadges.length === 0) {
+        listEl.innerHTML = '<div class="p-6 text-center text-xs text-slate-400">아직 획득한 뱃지가 없습니다. 강의를 완강하거나 퀴즈/실습을 수행하여 뱃지를 획득해 보세요.</div>';
+      } else {
+        listEl.innerHTML = myBadges.map(b => {
+          const isEquipped = user.equippedBadges.includes(b.id);
+          return `
+            <div class="p-3.5 rounded-xl border border-slate-200 bg-white flex items-center justify-between gap-3">
+              <div class="space-y-1">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded text-xs font-bold ${b.color}"><i class="fa-solid fa-award mr-1"></i>${escapeHtml(b.name)}</span>
+                  ${isEquipped ? '<span class="text-[11px] text-indigo-600 font-bold">[착용중]</span>' : '<span class="text-[11px] text-slate-400">[미착용]</span>'}
+                </div>
+                <p class="text-xs text-slate-500">${escapeHtml(b.desc)}</p>
+              </div>
+              <button onclick="toggleEquipBadge('${b.id}')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${isEquipped ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-indigo-600 text-white hover:bg-indigo-700'}">
+                ${isEquipped ? '착용 해제' : '착용하기'}
+              </button>
+            </div>
+          `;
+        }).join('');
+      }
+      document.getElementById('badge-modal').classList.remove('hidden');
+    }
+
+    function closeBadgeModal() {
+      document.getElementById('badge-modal').classList.add('hidden');
+    }
+
+    function toggleEquipBadge(badgeId) {
+      const user = getCurrentUserObj();
+      if (!user || !user.ownedBadges.includes(badgeId)) return;
+      const idx = user.equippedBadges.indexOf(badgeId);
+      if (idx === -1) user.equippedBadges.push(badgeId);
+      else user.equippedBadges.splice(idx, 1);
+      saveState();
+      openBadgeModal();
+      switchTab(activeTab);
+    }
+
+    // ==================== 4. 대시보드 탭 ====================
+    function renderDashboard() {
+      const user = getCurrentUserObj();
+      let totalLec = 0;
+      let doneLec = 0;
+      state.courses.forEach(c => {
+        totalLec += c.lectures.length;
+        if (user) {
+          doneLec += c.lectures.filter(l => l.completedBy.includes(user.id)).length;
+        }
+      });
+      const pct = totalLec ? Math.round((doneLec / totalLec) * 100) : 0;
+      const roleInfo = user ? getRoleLabel(user.role) : { text: '비로그인', cls: 'bg-slate-700 text-white' };
+
+      document.getElementById('tab-dashboard').innerHTML = `
+        <div class="bg-slate-900 rounded-2xl p-6 sm:p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded text-xs ${roleInfo.cls}">권한: ${roleInfo.text}</span>
+              <span class="text-xs text-slate-400">사이트: ${escapeHtml(state.config.name)}</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold">${user ? escapeHtml(user.name) + '님, 환영합니다.' : '로그인하여 학습을 시작하세요.'}</h2>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <span class="text-xs text-slate-300">착용 중인 뱃지:</span>
+              ${(user && renderEquippedBadgesHtml(user)) ? renderEquippedBadgesHtml(user) : '<span class="text-xs text-slate-400">착용한 뱃지가 없습니다.</span>'}
+            </div>
+          </div>
+          <div class="bg-white/10 p-4 rounded-xl min-w-[220px] w-full md:w-auto">
+            <div class="text-xs text-slate-300 mb-1">나의 전체 강의 진도율</div>
+            <div class="text-3xl font-extrabold mb-2">${pct}% <span class="text-xs font-normal text-slate-300">(${doneLec}/${totalLec} 차시)</span></div>
+            <div class="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-400 transition-all" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 mb-1">개설된 강의 과정</div>
+            <div class="text-2xl font-bold text-slate-900">${state.courses.length}개 과정</div>
+            <p class="text-xs text-slate-500 mt-1">100% 수강 완료 시 과정별 뱃지 지급</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 mb-1">소유한 뱃지</div>
+            <div class="text-2xl font-bold text-slate-900">${user ? user.ownedBadges.length : 0}개 보유</div>
+            <button onclick="openBadgeModal()" class="text-xs text-indigo-600 font-bold hover:underline mt-1">내 뱃지 탈부착하기</button>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 mb-1">등록된 게시글</div>
+            <div class="text-2xl font-bold text-slate-900">${state.posts.length}건</div>
+            <p class="text-xs text-slate-500 mt-1">마크다운 문서, 파일 첨부 및 댓글</p>
+          </div>
+          <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+            <div class="text-xs font-bold text-slate-400 mb-1">등록된 퀴즈 문항</div>
+            <div class="text-2xl font-bold text-slate-900">${state.quizzes.length}문항</div>
+            <p class="text-xs text-slate-500 mt-1">강사 및 어드민 직접 출제</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 5. 강의실 탭 (강사/어드민 개설, 본인/어드민 수정·삭제, 완강 시 뱃지 지급) ====================
+    function renderCourses() {
+      const user = getCurrentUserObj();
+      const canCreateCourse = isInstructorOrAdmin(user);
+      if (!selectedCourseId && state.courses.length > 0) {
+        selectedCourseId = state.courses[0].id;
+      }
+      const activeCourse = state.courses.find(c => c.id === selectedCourseId);
+
+      const courseListHtml = state.courses.length === 0
+        ? '<div class="bg-white p-6 rounded-xl border border-slate-200 text-xs text-slate-400 text-center">개설된 강의 과정이 없습니다.</div>'
+        : state.courses.map(c => {
+            const total = c.lectures.length;
+            const done = user ? c.lectures.filter(l => l.completedBy.includes(user.id)).length : 0;
+            const pct = total ? Math.round((done / total) * 100) : 0;
+            const badge = getBadgeById(c.badgeId);
+            const isSel = c.id === selectedCourseId;
+            const modifiable = canModify(c.authorId);
+
+            return `
+              <div onclick="selectCourse('${c.id}')"
+                class="p-4 rounded-xl border cursor-pointer transition ${isSel ? 'border-indigo-600 bg-indigo-50/40 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300'}">
+                <div class="flex justify-between items-start gap-2 mb-1">
+                  <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">${escapeHtml(c.category)}</span>
+                  ${badge ? `<span class="text-[11px] px-2 py-0.5 rounded font-semibold ${badge.color}"><i class="fa-solid fa-award mr-1"></i>보상: ${escapeHtml(badge.name)}</span>` : ''}
+                </div>
+                <h4 class="font-bold text-slate-900 text-sm mt-1">${escapeHtml(c.title)}</h4>
+                <div class="text-[11px] text-slate-400 mt-1">개설자: ${escapeHtml(c.authorName)}</div>
+                <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+                  <span>진도율: ${pct}% (${done}/${total} 차시)</span>
+                  ${modifiable ? `
+                    <div class="flex gap-2" onclick="event.stopPropagation()">
+                      <button onclick="openEditCourseModal('${c.id}')" class="text-indigo-600 hover:underline font-semibold">수정</button>
+                      <button onclick="deleteCourse('${c.id}')" class="text-red-500 hover:underline font-semibold">삭제</button>
+                    </div>
+                  ` : ''}
+                </div>
+                <div class="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden mt-1.5">
+                  <div class="h-full bg-indigo-600" style="width: ${pct}%"></div>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      let detailHtml = '<div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-xs text-slate-400">좌측에서 강의 과정을 선택하거나 새 강의를 개설해 주세요.</div>';
+      if (activeCourse) {
+        const badge = getBadgeById(activeCourse.badgeId);
+        const courseModifiable = canModify(activeCourse.authorId);
+
+        const lecturesHtml = activeCourse.lectures.length === 0
+          ? '<div class="bg-white p-6 rounded-xl border border-slate-200 text-xs text-slate-400 text-center">등록된 차시가 없습니다. 아래 폼에서 차시를 추가하세요.</div>'
+          : activeCourse.lectures.map(l => {
+              const isDone = user ? l.completedBy.includes(user.id) : false;
+              const lecModifiable = canModify(l.authorId || activeCourse.authorId);
+
+              return `
+                <div class="bg-white rounded-xl border ${isDone ? 'border-emerald-300' : 'border-slate-200'} p-5 space-y-4">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                    <div>
+                      <h4 class="font-bold text-slate-900 text-base">${escapeHtml(l.title)}</h4>
+                      ${lecModifiable ? `
+                        <div class="flex gap-2 text-xs mt-1">
+                          <button onclick="openEditLectureModal('${activeCourse.id}', '${l.id}')" class="text-indigo-600 hover:underline font-semibold">차시 수정</button>
+                          <button onclick="deleteLecture('${activeCourse.id}', '${l.id}')" class="text-red-500 hover:underline font-semibold">차시 삭제</button>
+                        </div>
+                      ` : ''}
+                    </div>
+                    <button onclick="toggleLectureComplete('${activeCourse.id}', '${l.id}')"
+                      class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition self-start sm:self-auto ${isDone ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-indigo-600 hover:text-white'}">
+                      <i class="fa-solid fa-check mr-1"></i>${isDone ? '수강 완료됨' : '수강 완료 체크'}
+                    </button>
+                  </div>
+
+                  ${l.videoUrl ? `
+                    <div class="aspect-video w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-200">
+                      <iframe src="${escapeHtml(l.videoUrl)}" class="w-full h-full" allowfullscreen></iframe>
+                    </div>
+                  ` : ''}
+
+                  <div class="markdown-body text-sm text-slate-700">${safeMarkdown(l.content)}</div>
+                </div>
+              `;
+            }).join('');
+
+        const addLectureFormHtml = courseModifiable ? `
+          <form onsubmit="addLectureToCourse(event, '${activeCourse.id}')" class="bg-white p-5 rounded-xl border border-slate-200 space-y-3 text-xs">
+            <div class="font-bold text-slate-800"><i class="fa-solid fa-plus mr-1 text-indigo-600"></i>이 강의 과정에 새 차시 추가</div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input type="text" id="add-lec-title" required placeholder="차시 제목 (예: 1강. 환경 설정)" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="add-lec-video" placeholder="영상 임베드 URL (선택사항)" class="px-3 py-2 border rounded-lg">
+            </div>
+            <textarea id="add-lec-content" rows="3" required placeholder="강의 본문 내용 (마크다운 문법 지원)" class="w-full px-3 py-2 border rounded-lg font-mono"></textarea>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700">차시 등록</button>
+          </form>
+        ` : '';
+
+        detailHtml = `
+          <div class="space-y-4">
+            <div class="bg-white p-5 rounded-xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <div>
+                <h3 class="text-lg font-bold text-slate-900">${escapeHtml(activeCourse.title)}</h3>
+                <p class="text-xs text-slate-500 mt-0.5">모든 차시를 수강 완료하면 [${badge ? escapeHtml(badge.name) : '수료'}] 뱃지가 지급됩니다.</p>
+              </div>
+            </div>
+            ${lecturesHtml}
+            ${addLectureFormHtml}
+          </div>
+        `;
+      }
+
+      const createCourseBox = canCreateCourse ? `
+        <details class="bg-white rounded-xl border border-slate-200 p-4">
+          <summary class="text-sm font-bold text-slate-800 cursor-pointer"><i class="fa-solid fa-folder-plus mr-1.5 text-indigo-600"></i>[강사 / 어드민] 새 강의 과정 및 수료 뱃지 개설하기</summary>
+          <form id="create-course-form" class="mt-4 space-y-3 text-xs border-t pt-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <input type="text" id="nc-cat" required placeholder="분류 (예: 프로그래밍, 어학)" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="nc-title" required placeholder="강의 과정 제목" class="sm:col-span-2 px-3 py-2 border rounded-lg">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input type="text" id="nc-badge" required placeholder="완강 시 지급할 뱃지 이름 (예: 웹 개발 수료)" class="px-3 py-2 border rounded-lg">
+              <select id="nc-color" class="px-3 py-2 border rounded-lg">
+                <option value="bg-indigo-600 text-white">인디고 뱃지</option>
+                <option value="bg-emerald-600 text-white">에메랄드 뱃지</option>
+                <option value="bg-rose-600 text-white">로즈 뱃지</option>
+                <option value="bg-amber-600 text-white">앰버 뱃지</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input type="text" id="nc-lec-title" required placeholder="첫 번째 차시 제목" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="nc-lec-video" placeholder="영상 임베드 URL (선택사항)" class="px-3 py-2 border rounded-lg">
+            </div>
+            <textarea id="nc-lec-content" rows="3" required placeholder="첫 차시 강의 마크다운 본문 내용" class="w-full px-3 py-2 border rounded-lg font-mono"></textarea>
+            <button type="submit" class="px-4 py-2 bg-slate-900 text-white font-bold rounded-lg">강의 과정 개설</button>
+          </form>
+        </details>
+      ` : '';
+
+      document.getElementById('tab-courses').innerHTML = `
+        ${createCourseBox}
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-slate-700">강의 과정 목록 (${state.courses.length})</h3>
+            ${courseListHtml}
+          </div>
+          <div class="lg:col-span-2">${detailHtml}</div>
+        </div>
+      `;
+
+      const createForm = document.getElementById('create-course-form');
+      if (createForm) {
+        createForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const badgeId = 'badge-' + Date.now();
+          const badgeName = document.getElementById('nc-badge').value.trim();
+          const cTitle = document.getElementById('nc-title').value.trim();
+
+          state.badges.push({
+            id: badgeId,
+            name: badgeName,
+            desc: "'" + cTitle + "' 과정을 100% 완강하여 획득한 뱃지",
+            color: document.getElementById('nc-color').value
+          });
+
+          const cId = 'course-' + Date.now();
+          state.courses.push({
+            id: cId,
+            category: document.getElementById('nc-cat').value.trim(),
+            title: cTitle,
+            authorId: user.id,
+            authorName: user.name,
+            badgeId: badgeId,
+            lectures: [{
+              id: 'lec-' + Date.now(),
+              title: document.getElementById('nc-lec-title').value.trim(),
+              videoUrl: document.getElementById('nc-lec-video').value.trim(),
+              content: document.getElementById('nc-lec-content').value,
+              authorId: user.id,
+              completedBy: []
+            }]
+          });
+          selectedCourseId = cId;
+          saveState();
+          renderCourses();
+        });
+      }
+    }
+
+    function selectCourse(cid) {
+      selectedCourseId = cid;
+      renderCourses();
+    }
+
+    function addLectureToCourse(e, cid) {
+      e.preventDefault();
+      const user = getCurrentUserObj();
+      const course = state.courses.find(c => c.id === cid);
+      if (!course || !canModify(course.authorId)) return;
+
+      course.lectures.push({
+        id: 'lec-' + Date.now(),
+        title: document.getElementById('add-lec-title').value.trim(),
+        videoUrl: document.getElementById('add-lec-video').value.trim(),
+        content: document.getElementById('add-lec-content').value,
+        authorId: user.id,
+        completedBy: []
+      });
+      saveState();
+      renderCourses();
+    }
+
+    function openEditCourseModal(cid) {
+      const c = state.courses.find(x => x.id === cid);
+      if (!c || !canModify(c.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '강의 과정 정보 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-course-form" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">분류</label>
+            <input type="text" id="edit-c-cat" value="${escapeHtml(c.category)}" required class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">강의 과정명</label>
+            <input type="text" id="edit-c-title" value="${escapeHtml(c.title)}" required class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">저장하기</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-course-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        c.category = document.getElementById('edit-c-cat').value.trim();
+        c.title = document.getElementById('edit-c-title').value.trim();
+        saveState();
+        closeEditModal();
+        renderCourses();
+      });
+    }
+
+    function deleteCourse(cid) {
+      const c = state.courses.find(x => x.id === cid);
+      if (!c || !canModify(c.authorId)) return;
+      if (!confirm('이 강의 과정을 삭제하시겠습니까?')) return;
+      state.courses = state.courses.filter(x => x.id !== cid);
+      if (selectedCourseId === cid) selectedCourseId = state.courses[0] ? state.courses[0].id : null;
+      saveState();
+      renderCourses();
+    }
+
+    function openEditLectureModal(cid, lid) {
+      const c = state.courses.find(x => x.id === cid);
+      const l = c ? c.lectures.find(x => x.id === lid) : null;
+      if (!l || !canModify(l.authorId || c.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '차시 내용 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-lec-form" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">차시 제목</label>
+            <input type="text" id="edit-l-title" value="${escapeHtml(l.title)}" required class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">영상 URL</label>
+            <input type="text" id="edit-l-video" value="${escapeHtml(l.videoUrl || '')}" class="w-full px-3 py-2 border rounded-lg">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">강의 마크다운 내용</label>
+            <textarea id="edit-l-content" rows="5" required class="w-full px-3 py-2 border rounded-lg font-mono">${escapeHtml(l.content)}</textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">저장하기</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-lec-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        l.title = document.getElementById('edit-l-title').value.trim();
+        l.videoUrl = document.getElementById('edit-l-video').value.trim();
+        l.content = document.getElementById('edit-l-content').value;
+        saveState();
+        closeEditModal();
+        renderCourses();
+      });
+    }
+
+    function deleteLecture(cid, lid) {
+      const c = state.courses.find(x => x.id === cid);
+      const l = c ? c.lectures.find(x => x.id === lid) : null;
+      if (!l || !canModify(l.authorId || c.authorId)) return;
+      if (!confirm('해당 차시를 삭제하시겠습니까?')) return;
+      c.lectures = c.lectures.filter(x => x.id !== lid);
+      saveState();
+      renderCourses();
+    }
+
+    function toggleLectureComplete(cid, lid) {
+      const user = getCurrentUserObj();
+      if (!user) return;
+      const course = state.courses.find(c => c.id === cid);
+      if (!course) return;
+      const lec = course.lectures.find(l => l.id === lid);
+      if (!lec) return;
+
+      const idx = lec.completedBy.indexOf(user.id);
+      if (idx === -1) lec.completedBy.push(user.id);
+      else lec.completedBy.splice(idx, 1);
+      saveState();
+
+      if (course.lectures.length > 0 && course.lectures.every(l => l.completedBy.includes(user.id)) && course.badgeId) {
+        awardBadgeIfNotOwned(course.badgeId);
+      }
+      renderCourses();
+    }
+
+    // ==================== 6. 마크다운 게시판 & 댓글 (본인/어드민 수정·삭제 완벽 지원) ====================
+    function renderBoard() {
+      const user = getCurrentUserObj();
+      const canPostNotice = isInstructorOrAdmin(user);
+
+      const postsHtml = state.posts.length === 0
+        ? '<div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-xs text-slate-400">등록된 게시글이 없습니다. 첫 게시글을 작성해 보세요.</div>'
+        : state.posts.slice().reverse().map(p => {
+            const postModifiable = canModify(p.authorId);
+
+            const filesHtml = (p.attachments || []).map(f => `
+              <a href="${f.dataUrl}" download="${escapeHtml(f.name)}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 text-xs font-medium">
+                <i class="fa-solid fa-download"></i><span>${escapeHtml(f.name)}</span><span class="text-slate-400">(${(f.size / 1024).toFixed(1)}KB)</span>
+              </a>
+            `).join('');
+
+            const comments = p.comments || [];
+            const commentsHtml = comments.map(cm => {
+              const cmModifiable = canModify(cm.authorId);
+              return `
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                      ${renderAuthorTag(cm.authorId, cm.authorName)}
+                      <span class="text-slate-400 text-[11px]">${cm.date}</span>
+                    </div>
+                    ${cmModifiable ? `
+                      <div class="flex gap-2">
+                        <button onclick="openEditCommentModal('${p.id}', '${cm.id}')" class="text-indigo-600 hover:underline font-semibold">수정</button>
+                        <button onclick="deleteComment('${p.id}', '${cm.id}')" class="text-red-500 hover:underline font-semibold">삭제</button>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <p class="text-slate-700 whitespace-pre-line pt-1">${escapeHtml(cm.content)}</p>
+                </div>
+              `;
+            }).join('');
+
+            return `
+              <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-bold px-2 py-0.5 rounded ${p.category === '공지사항' ? 'bg-red-100 text-red-700' : 'bg-indigo-50 text-indigo-700'}">${escapeHtml(p.category)}</span>
+                      <h4 class="font-bold text-slate-900 text-base">${escapeHtml(p.title)}</h4>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-500">
+                      ${renderAuthorTag(p.authorId, p.authorName)}
+                      <span>| ${p.date}</span>
+                    </div>
+                  </div>
+                  ${postModifiable ? `
+                    <div class="flex gap-2.5 text-xs shrink-0">
+                      <button onclick="openEditPostModal('${p.id}')" class="text-indigo-600 hover:underline font-bold">수정</button>
+                      <button onclick="deletePost('${p.id}')" class="text-red-500 hover:underline font-bold">삭제</button>
+                    </div>
+                  ` : ''}
+                </div>
+
+                <div class="markdown-body text-sm text-slate-700">${safeMarkdown(p.content)}</div>
+                ${filesHtml ? `<div class="pt-3 border-t flex flex-wrap gap-2">${filesHtml}</div>` : ''}
+
+                <!-- 댓글 영역 -->
+                <div class="pt-3 border-t border-slate-100 space-y-2.5">
+                  <div class="text-xs font-bold text-slate-700"><i class="fa-regular fa-comment-dots mr-1"></i>댓글 (${comments.length})</div>
+                  <div class="space-y-2">${commentsHtml}</div>
+                  <form onsubmit="addComment(event, '${p.id}')" class="flex gap-2 pt-1">
+                    <input type="text" id="cm-input-${p.id}" required placeholder="댓글을 입력하세요..." class="flex-1 px-3 py-1.5 border rounded-lg text-xs">
+                    <button type="submit" class="px-3.5 py-1.5 bg-slate-800 text-white text-xs font-bold rounded-lg hover:bg-slate-700 shrink-0">댓글 등록</button>
+                  </form>
+                </div>
+              </div>
+            `;
+          }).join('');
+
+      document.getElementById('tab-board').innerHTML = `
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">마크다운 게시글 작성 및 파일 첨부</h3>
+              <p class="text-[11px] text-slate-500">자신이 작성한 게시글과 댓글은 언제든 수정·삭제할 수 있으며, 어드민은 모든 글·댓글을 관리할 수 있습니다.</p>
+            </div>
+            <div class="flex gap-1">
+              <button type="button" onclick="toggleMdPreview(false)" class="px-3 py-1 text-xs font-bold rounded bg-slate-900 text-white">에디터</button>
+              <button type="button" onclick="toggleMdPreview(true)" class="px-3 py-1 text-xs font-bold rounded bg-slate-100 text-slate-600">미리보기</button>
+            </div>
+          </div>
+
+          <form id="board-form" class="space-y-3">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <select id="post-category" class="px-3 py-2 border rounded-lg text-sm">
+                ${canPostNotice ? '<option value="공지사항">공지사항</option>' : ''}
+                <option value="학습자료">학습자료</option>
+                <option value="질문/토론">질문/토론</option>
+                <option value="자유게시글">자유게시글</option>
+              </select>
+              <input type="text" id="post-title" required placeholder="게시글 제목을 입력하세요" class="sm:col-span-3 px-3 py-2 border rounded-lg text-sm">
+            </div>
+            <div class="flex flex-wrap gap-1.5 border-b pb-2 text-xs">
+              <button type="button" onclick="insertMdTag('h3')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono">H3 제목</button>
+              <button type="button" onclick="insertMdTag('bold')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-bold">굵게</button>
+              <button type="button" onclick="insertMdTag('code')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded font-mono">코드 블록</button>
+              <button type="button" onclick="insertMdTag('table')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 rounded">표 삽입</button>
+            </div>
+            <textarea id="post-content" rows="4" required placeholder="마크다운(Markdown) 문법으로 본문을 작성하세요..." class="w-full px-3 py-2 border rounded-lg text-sm font-mono"></textarea>
+            <div id="post-md-preview" class="hidden p-4 rounded-lg border bg-slate-50 min-h-[100px] markdown-body text-sm"></div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <input type="file" id="post-files" multiple class="text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-slate-100 file:text-slate-700">
+              </div>
+              <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">게시글 등록</button>
+            </div>
+          </form>
+        </div>
+        <div class="space-y-4">${postsHtml}</div>
+      `;
+
+      tempAttachments = [];
+      document.getElementById('post-files').addEventListener('change', (e) => {
+        tempAttachments = [];
+        const files = Array.from(e.target.files);
+        for (const file of files) {
+          const ext = (file.name.split('.').pop() || '').toLowerCase();
+          if (FORBIDDEN_EXTENSIONS.includes(ext)) {
+            alert("[보안 차단] 허용되지 않는 실행 확장자(." + ext + ") 파일입니다.");
+            e.target.value = '';
+            tempAttachments = [];
+            return;
+          }
+          if (file.size > MAX_FILE_SIZE_BYTES) {
+            alert("[용량 초과] 5MB 이하 파일만 첨부 가능합니다.");
+            e.target.value = '';
+            tempAttachments = [];
+            return;
+          }
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            tempAttachments.push({ name: file.name, size: file.size, dataUrl: ev.target.result });
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById('board-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!user) return;
+        state.posts.push({
+          id: 'post-' + Date.now(),
+          category: document.getElementById('post-category').value,
+          title: document.getElementById('post-title').value.trim(),
+          authorId: user.id,
+          authorName: user.name,
+          date: new Date().toISOString().slice(0, 10),
+          content: document.getElementById('post-content').value,
+          attachments: tempAttachments,
+          comments: []
+        });
+        saveState();
+        renderBoard();
+      });
+    }
+
+    function openEditPostModal(pid) {
+      const p = state.posts.find(x => x.id === pid);
+      if (!p || !canModify(p.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '게시글 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-post-form" class="space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">제목</label>
+            <input type="text" id="edit-p-title" value="${escapeHtml(p.title)}" required class="w-full px-3 py-2 border rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block font-bold text-slate-600 mb-1">마크다운 본문</label>
+            <textarea id="edit-p-content" rows="6" required class="w-full px-3 py-2 border rounded-lg font-mono text-sm">${escapeHtml(p.content)}</textarea>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">수정 완료</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-post-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        p.title = document.getElementById('edit-p-title').value.trim();
+        p.content = document.getElementById('edit-p-content').value;
+        saveState();
+        closeEditModal();
+        renderBoard();
+      });
+    }
+
+    function deletePost(pid) {
+      const p = state.posts.find(x => x.id === pid);
+      if (!p || !canModify(p.authorId)) return;
+      if (!confirm('이 게시글을 삭제하시겠습니까?')) return;
+      state.posts = state.posts.filter(x => x.id !== pid);
+      saveState();
+      renderBoard();
+    }
+
+    function addComment(e, pid) {
+      e.preventDefault();
+      const user = getCurrentUserObj();
+      if (!user) return;
+      const p = state.posts.find(x => x.id === pid);
+      if (!p) return;
+      const inputEl = document.getElementById('cm-input-' + pid);
+      const content = inputEl.value.trim();
+      if (!content) return;
+
+      if (!p.comments) p.comments = [];
+      p.comments.push({
+        id: 'cm-' + Date.now(),
+        authorId: user.id,
+        authorName: user.name,
+        date: new Date().toISOString().slice(0, 10),
+        content: content
+      });
+      saveState();
+      renderBoard();
+    }
+
+    function openEditCommentModal(pid, cmid) {
+      const p = state.posts.find(x => x.id === pid);
+      const cm = p && p.comments ? p.comments.find(x => x.id === cmid) : null;
+      if (!cm || !canModify(cm.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '댓글 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-cm-form" class="space-y-3 text-xs">
+          <textarea id="edit-cm-content" rows="3" required class="w-full px-3 py-2 border rounded-lg text-sm">${escapeHtml(cm.content)}</textarea>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">수정 완료</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-cm-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        cm.content = document.getElementById('edit-cm-content').value.trim();
+        saveState();
+        closeEditModal();
+        renderBoard();
+      });
+    }
+
+    function deleteComment(pid, cmid) {
+      const p = state.posts.find(x => x.id === pid);
+      const cm = p && p.comments ? p.comments.find(x => x.id === cmid) : null;
+      if (!cm || !canModify(cm.authorId)) return;
+      if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+      p.comments = p.comments.filter(x => x.id !== cmid);
+      saveState();
+      renderBoard();
+    }
+
+    function insertMdTag(type) {
+      const ta = document.getElementById('post-content');
+      if (!ta) return;
+      let snippet = '';
+      if (type === 'h3') snippet = '### 소제목\n';
+      if (type === 'bold') snippet = '**굵은 텍스트**';
+      if (type === 'code') snippet = '\n' + CODE_FENCE + 'javascript\n// 코드 입력\n' + CODE_FENCE + '\n';
+      if (type === 'table') snippet = '\n| 항목 | 설명 |\n| --- | --- |\n| 내용1 | 내용2 |\n';
+
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      ta.value = ta.value.substring(0, start) + snippet + ta.value.substring(end);
+      ta.focus();
+    }
+
+    function toggleMdPreview(show) {
+      const ta = document.getElementById('post-content');
+      const prev = document.getElementById('post-md-preview');
+      if (show) {
+        prev.innerHTML = safeMarkdown(ta.value || '*내용 없음*');
+        ta.classList.add('hidden');
+        prev.classList.remove('hidden');
+      } else {
+        ta.classList.remove('hidden');
+        prev.classList.add('hidden');
+      }
+    }
+
+    // ==================== 7. 퀴즈 및 평가 탭 (초기 퀴즈 없음, 강사/어드민 출제 및 수정·삭제) ====================
+    function renderQuiz() {
+      const user = getCurrentUserObj();
+      const canCreateQuiz = isInstructorOrAdmin(user);
+
+      const adminQuizForm = canCreateQuiz ? `
+        <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+          <h3 class="text-sm font-bold text-slate-900 mb-3"><i class="fa-solid fa-plus-circle mr-1.5 text-indigo-600"></i>[강사 / 어드민] 신규 퀴즈 문항 출제</h3>
+          <form id="add-quiz-form" class="space-y-3 text-xs">
+            <input type="text" id="nq-title" required placeholder="문항 질문을 입력하세요" class="w-full px-3 py-2 border rounded-lg">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input type="text" id="nq-o0" required placeholder="보기 1번" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="nq-o1" required placeholder="보기 2번" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="nq-o2" required placeholder="보기 3번" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="nq-o3" required placeholder="보기 4번" class="px-3 py-2 border rounded-lg">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select id="nq-ans" class="px-3 py-2 border rounded-lg">
+                <option value="0">정답: 보기 1번</option>
+                <option value="1">정답: 보기 2번</option>
+                <option value="2">정답: 보기 3번</option>
+                <option value="3">정답: 보기 4번</option>
+              </select>
+              <input type="text" id="nq-exp" required placeholder="정답 해설 및 피드백 입력" class="sm:col-span-2 px-3 py-2 border rounded-lg">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-slate-900 text-white font-bold rounded-lg">퀴즈 문항 등록</button>
+          </form>
+        </div>
+      ` : '';
+
+      const qHtml = state.quizzes.length === 0
+        ? '<div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-xs text-slate-400">현재 출제된 퀴즈 문항이 없습니다.</div>'
+        : `
+          <form id="solve-quiz-form" class="space-y-4">
+            ${state.quizzes.map((q, idx) => {
+              const qModifiable = canModify(q.authorId);
+              return `
+                <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                  <div class="flex justify-between items-start gap-2">
+                    <div class="font-bold text-slate-900 text-sm">문항 ${idx + 1}. ${escapeHtml(q.question)}</div>${qModifiable ? `
+                      <div class="flex gap-2 text-xs shrink-0">
+                        <button type="button" onclick="openEditQuizModal('${q.id}')" class="text-indigo-600 hover:underline font-bold">수정</button>
+                        <button type="button" onclick="deleteQuiz('${q.id}')" class="text-red-500 hover:underline font-bold">삭제</button>
+                      </div>
+                    ` : ''}
+                  </div>
+                  <div class="space-y-1.5">
+                    ${q.options.map((opt, oIdx) => `
+                      <label class="flex items-center gap-2.5 p-2 rounded-lg border border-slate-100 hover:bg-slate-50 cursor-pointer text-xs sm:text-sm">
+                        <input type="radio" name="quiz-${q.id}" value="${oIdx}" required class="text-indigo-600">
+                        <span>${escapeHtml(opt)}</span>
+                      </label>
+                    `).join('')}
+                  </div>
+                  <div id="exp-${q.id}" class="hidden p-3 rounded-lg bg-slate-50 text-xs text-slate-700 border-l-4 border-indigo-600"></div>
+                </div>
+              `;
+            }).join('')}
+            <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-xl shadow">답안 제출 및 채점하기</button>
+          </form>
+        `;
+
+      document.getElementById('tab-quiz').innerHTML = `
+        <div class="space-y-1">
+          <h2 class="text-xl font-bold text-slate-900">퀴즈 및 성취도 평가</h2>
+          <p class="text-xs text-slate-500">80점 이상 달성 시 [평가 우수자] 뱃지가 지급됩니다.</p>
+        </div>
+        ${adminQuizForm}
+        <div id="quiz-banner" class="hidden p-4 rounded-xl border text-sm font-bold"></div>
+        ${qHtml}
+      `;
+
+      const addQForm = document.getElementById('add-quiz-form');
+      if (addQForm) {
+        addQForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          state.quizzes.push({
+            id: 'q-' + Date.now(),
+            authorId: user.id,
+            question: document.getElementById('nq-title').value.trim(),
+            options: [
+              document.getElementById('nq-o0').value.trim(),
+              document.getElementById('nq-o1').value.trim(),
+              document.getElementById('nq-o2').value.trim(),
+              document.getElementById('nq-o3').value.trim()
+            ],
+            answer: parseInt(document.getElementById('nq-ans').value, 10),
+            explanation: document.getElementById('nq-exp').value.trim()
+          });
+          saveState();
+          renderQuiz();
+        });
+      }
+
+      const solveForm = document.getElementById('solve-quiz-form');
+      if (solveForm) {
+        solveForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          let correct = 0;
+          state.quizzes.forEach(q => {
+            const checked = document.querySelector('input[name="quiz-' + q.id + '"]:checked');
+            const ans = checked ? parseInt(checked.value, 10) : -1;
+            const isRight = ans === q.answer;
+            if (isRight) correct++;
+            const expEl = document.getElementById('exp-' + q.id);
+            expEl.classList.remove('hidden');
+            expEl.innerHTML = '<div class="font-bold ' + (isRight ? 'text-emerald-600' : 'text-red-600') + '">[' + (isRight ? '정답' : '오답') + '] 정답: ' + escapeHtml(q.options[q.answer]) + '</div><div class="mt-1">해설: ' + escapeHtml(q.explanation) + '</div>';
+          });
+
+          const score = Math.round((correct / state.quizzes.length) * 100);
+          const level = score >= 80 ? '상' : score >= 60 ? '중' : '하';
+          if (user) {
+            if (!state.quizScores) state.quizScores = {};
+            state.quizScores[user.id] = { score: score, level: level, date: new Date().toISOString().slice(0, 10) };
+            saveState();
+          }
+
+          const banner = document.getElementById('quiz-banner');
+          banner.classList.remove('hidden');
+          banner.className = 'p-4 rounded-xl border ' + (score >= 80 ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900');
+          banner.textContent = '채점 점수: ' + score + '점 (' + correct + ' / ' + state.quizzes.length + ' 정답) — 성취수준 [' + level + ']';
+
+          if (score >= 80) awardBadgeIfNotOwned('badge-quiz-master');
+        });
+      }
+    }
+
+    function openEditQuizModal(qid) {
+      const q = state.quizzes.find(x => x.id === qid);
+      if (!q || !canModify(q.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '퀴즈 문항 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-quiz-form" class="space-y-3 text-xs">
+          <input type="text" id="eq-title" value="${escapeHtml(q.question)}" required class="w-full px-3 py-2 border rounded-lg">
+          <div class="grid grid-cols-2 gap-2">
+            <input type="text" id="eq-o0" value="${escapeHtml(q.options[0])}" required class="px-3 py-2 border rounded-lg">
+            <input type="text" id="eq-o1" value="${escapeHtml(q.options[1])}" required class="px-3 py-2 border rounded-lg">
+            <input type="text" id="eq-o2" value="${escapeHtml(q.options[2])}" required class="px-3 py-2 border rounded-lg">
+            <input type="text" id="eq-o3" value="${escapeHtml(q.options[3])}" required class="px-3 py-2 border rounded-lg">
+          </div>
+          <select id="eq-ans" class="w-full px-3 py-2 border rounded-lg">
+            <option value="0" ${q.answer === 0 ? 'selected' : ''}>정답: 보기 1번</option>
+            <option value="1" ${q.answer === 1 ? 'selected' : ''}>정답: 보기 2번</option>
+            <option value="2" ${q.answer === 2 ? 'selected' : ''}>정답: 보기 3번</option>
+            <option value="3" ${q.answer === 3 ? 'selected' : ''}>정답: 보기 4번</option>
+          </select>
+          <input type="text" id="eq-exp" value="${escapeHtml(q.explanation)}" required class="w-full px-3 py-2 border rounded-lg">
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">수정 저장</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-quiz-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        q.question = document.getElementById('eq-title').value.trim();
+        q.options = [
+          document.getElementById('eq-o0').value.trim(),
+          document.getElementById('eq-o1').value.trim(),
+          document.getElementById('eq-o2').value.trim(),
+          document.getElementById('eq-o3').value.trim()
+        ];
+        q.answer = parseInt(document.getElementById('eq-ans').value, 10);
+        q.explanation = document.getElementById('eq-exp').value.trim();
+        saveState();
+        closeEditModal();
+        renderQuiz();
+      });
+    }
+
+    function deleteQuiz(qid) {
+      const q = state.quizzes.find(x => x.id === qid);
+      if (!q || !canModify(q.authorId)) return;
+      if (!confirm('이 퀴즈 문항을 삭제하시겠습니까?')) return;
+      state.quizzes = state.quizzes.filter(x => x.id !== qid);
+      saveState();
+      renderQuiz();
+    }
+
+    // ==================== 8. 코딩 샌드박스 & 정적 코드 인스펙션 ====================
+    function renderSandbox() {
+      document.getElementById('tab-sandbox').innerHTML = `
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">코딩 실습 샌드박스 및 정적 코드 인스펙션</h2>
+              <p class="text-xs text-slate-500">HTML/CSS/JS 코드를 실시간 실행하고 정규식 규칙 기반 보안 인스펙션을 수행합니다.</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="inspectSandboxCode(true)" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg">
+                <i class="fa-solid fa-magnifying-glass-chart mr-1"></i>정적 코드 인스펙션
+              </button>
+              <button onclick="runSandboxCode()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg">
+                <i class="fa-solid fa-play mr-1"></i>코드 실행
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">HTML / CSS 코드</label>
+                <textarea id="sb-html" rows="5" class="w-full p-3 font-mono text-xs bg-slate-900 text-slate-100 rounded-lg"><div style="padding:12px; border:1px solid #cbd5e1; border-radius:8px;">
+  <h4 id="app-title" style="margin:0; color:#4f46e5;">Hello LMS Sandbox</h4>
+</div></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">JavaScript 코드</label>
+                <textarea id="sb-js" rows="7" class="w-full p-3 font-mono text-xs bg-slate-900 text-emerald-300 rounded-lg">const values = [10, 20, 30];
+const total = values.reduce((a, b) => a + b, 0);
+console.log("합계:", total);
+document.getElementById("app-title").textContent = "계산 결과: " + total;</textarea>
+              </div>
+            </div>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">실행 결과 화면</label>
+                <iframe id="sb-iframe" class="w-full h-36 border border-slate-200 rounded-lg bg-white"></iframe>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">콘솔 출력</label>
+                <pre id="sb-console" class="w-full h-24 p-3 bg-slate-950 text-slate-200 font-mono text-xs rounded-lg overflow-y-auto"></pre>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1">정적 코드 인스펙션 리포트</label>
+                <div id="sb-inspection-report" class="p-3 rounded-lg border border-slate-200 bg-slate-50 text-xs min-h-[70px]"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      inspectSandboxCode(false);
+    }
+
+    function inspectSandboxCode(countRun) {
+      const jsEl = document.getElementById('sb-js');
+      const reportEl = document.getElementById('sb-inspection-report');
+      if (!jsEl || !reportEl) return;
+
+      const jsCode = jsEl.value;
+      const violations = [];
+      state.inspectionRules.forEach(rule => {
+        try {
+          const regex = new RegExp(rule.pattern, 'gm');
+          const match = regex.exec(jsCode);
+          if (match) {
+            violations.push({ ruleName: rule.name, severity: rule.severity, matched: match[0], desc: rule.desc });
+          }
+        } catch (e) {}
+      });
+
+      if (violations.length === 0) {
+        reportEl.innerHTML = '<div class="text-emerald-700 font-bold"><i class="fa-solid fa-check-circle mr-1"></i>정적 코드 인스펙션 통과: 규칙 위반 사항이 없습니다.</div>';
+      } else {
+        reportEl.innerHTML = `
+          <div class="text-red-600 font-bold mb-1.5">총 ${violations.length}건의 규칙 위반 검출:</div>
+          <ul class="space-y-1">
+            ${violations.map(v => `
+              <li class="p-1.5 bg-white rounded border border-red-200 flex justify-between">
+                <span><strong class="text-red-700">[${escapeHtml(v.severity)}]</strong>${escapeHtml(v.ruleName)}</span>
+                <code class="font-mono text-red-600">${escapeHtml(v.matched)}</code>
+              </li>
+            `).join('')}
+          </ul>
+        `;
+      }
+      if (countRun) incrementSandboxActivity();
+    }
+
+    function runSandboxCode() {
+      inspectSandboxCode(false);
+      const htmlCode = document.getElementById('sb-html').value;
+      const jsCode = document.getElementById('sb-js').value;
+      const iframe = document.getElementById('sb-iframe');
+      const consoleEl = document.getElementById('sb-console');
+      consoleEl.textContent = '';
+
+      iframe.srcdoc = '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:sans-serif; margin:8px;">' +
+        htmlCode +
+        '<script>' +
+        'const origLog = console.log;' +
+        'console.log = function(...args) {' +
+        '  window.parent.postMessage({ type: "SANDBOX_LOG", data: args.join(" ") }, "*");' +
+        '  origLog.apply(console, args);' +
+        '};' +
+        'try { ' + jsCode + ' } catch (err) {' +
+        '  window.parent.postMessage({ type: "SANDBOX_LOG", data: "[Error] " + err.message }, "*");' +
+        '}' +
+        '<\/script></body></html>';
+
+      incrementSandboxActivity();
+    }
+
+    function incrementSandboxActivity() {
+      const user = getCurrentUserObj();
+      if (!user) return;
+      user.sandboxRuns = (user.sandboxRuns || 0) + 1;
+      saveState();
+      if (user.sandboxRuns >= 3) {
+        awardBadgeIfNotOwned('badge-sandbox-pro');
+      }
+    }
+
+    window.addEventListener('message', (e) => {
+      if (e.data && e.data.type === 'SANDBOX_LOG') {
+        const consoleEl = document.getElementById('sb-console');
+        if (consoleEl) consoleEl.textContent += '> ' + e.data.data + '\n';
+      }
+    });
+
+    // ==================== 9. 과제 제출 및 루브릭 평가 (본인/어드민 수정·삭제) ====================
+    function renderRubric() {
+      const user = getCurrentUserObj();
+
+      const subsHtml = state.submissions.length === 0
+        ? '<div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-xs text-slate-400">제출된 과제가 없습니다.</div>'
+        : state.submissions.slice().reverse().map(sub => {
+            const subModifiable = canModify(sub.authorId);
+            const reviews = sub.reviews || [];
+            let avgScore = 0;
+            if (reviews.length > 0) {
+              const total = reviews.reduce((acc, r) => acc + ((r.completeness + r.logic + r.security) / 3), 0);
+              avgScore = ((total / reviews.length) * 20).toFixed(0);
+            }
+
+            const reviewsHtml = reviews.map(r => {
+              const revModifiable = canModify(r.reviewerId);
+              return `
+                <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs space-y-1">
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-2">
+                      ${renderAuthorTag(r.reviewerId, r.reviewerName)}
+                      <span class="text-indigo-600 font-bold">완성도 ${r.completeness} / 논리성 ${r.logic} / 표준준수 ${r.security}</span>
+                    </div>
+                    ${revModifiable ? `<button onclick="deleteRubricReview('${sub.id}', '${r.id}')" class="text-red-500 hover:underline font-bold">삭제</button>` : ''}
+                  </div>
+                  <p class="text-slate-700 pt-1">${escapeHtml(r.comment)}</p>
+                </div>
+              `;
+            }).join('');
+
+            return `
+              <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex justify-between items-start border-b pb-3">
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-base">${escapeHtml(sub.title)}</h4>
+                    <div class="flex items-center gap-2 text-xs text-slate-500 mt-1.5">
+                      ${renderAuthorTag(sub.authorId, sub.authorName)}
+                      <span>| ${sub.date}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-800 text-xs font-bold">평균 ${avgScore}점</span>
+                    ${subModifiable ? `
+                      <button onclick="openEditSubmissionModal('${sub.id}')" class="text-xs text-indigo-600 hover:underline font-bold">수정</button>
+                      <button onclick="deleteSubmission('${sub.id}')" class="text-xs text-red-500 hover:underline font-bold">삭제</button>
+                    ` : ''}
+                  </div>
+                </div>
+                <div class="markdown-body text-sm text-slate-700">${safeMarkdown(sub.content)}</div>
+                <div class="space-y-2 pt-2 border-t">
+                  <div class="text-xs font-bold text-slate-700">루브릭 평가 내역 (${reviews.length})</div>
+                  ${reviewsHtml}
+                </div>
+                <form onsubmit="submitRubricReview(event, '${sub.id}')" class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-xs">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <label class="flex justify-between bg-white px-3 py-1.5 border rounded-lg"><span>완성도(1~5)</span><input type="number" id="rub-c-${sub.id}" min="1" max="5" value="5" required class="w-12 text-right font-bold"></label>
+                    <label class="flex justify-between bg-white px-3 py-1.5 border rounded-lg"><span>논리성(1~5)</span><input type="number" id="rub-l-${sub.id}" min="1" max="5" value="5" required class="w-12 text-right font-bold"></label>
+                    <label class="flex justify-between bg-white px-3 py-1.5 border rounded-lg"><span>표준준수(1~5)</span><input type="number" id="rub-s-${sub.id}" min="1" max="5" value="5" required class="w-12 text-right font-bold"></label>
+                  </div>
+                  <div class="flex gap-2">
+                    <input type="text" id="rub-msg-${sub.id}" required placeholder="평가 피드백 코멘트 입력" class="flex-1 px-3 py-1.5 border rounded-lg bg-white">
+                    <button type="submit" class="px-4 py-1.5 bg-slate-900 text-white font-bold rounded-lg shrink-0">평가 등록</button>
+                  </div>
+                </form>
+              </div>
+            `;
+          }).join('');
+
+      document.getElementById('tab-rubric').innerHTML = `
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-base font-bold text-slate-900">과제 제출 및 루브릭 상호 평가</h3>
+          <form id="sub-form" class="space-y-3 text-xs">
+            <input type="text" id="sub-title" required placeholder="과제 제목을 입력하세요" class="w-full px-3 py-2 border rounded-lg text-sm">
+            <textarea id="sub-content" rows="4" required placeholder="마크다운 문법으로 과제 내용을 작성하세요..." class="w-full px-3 py-2 border rounded-lg text-sm font-mono"></textarea>
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg">과제 등록</button>
+          </form>
+        </div>
+        <div class="space-y-4">${subsHtml}</div>
+      `;
+
+      document.getElementById('sub-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!user) return;
+        state.submissions.push({
+          id: 'sub-' + Date.now(),
+          title: document.getElementById('sub-title').value.trim(),
+          authorId: user.id,
+          authorName: user.name,
+          date: new Date().toISOString().slice(0, 10),
+          content: document.getElementById('sub-content').value,
+          reviews: []
+        });
+        saveState();
+        renderRubric();
+      });
+    }
+
+    function openEditSubmissionModal(sid) {
+      const sub = state.submissions.find(x => x.id === sid);
+      if (!sub || !canModify(sub.authorId)) return;
+
+      document.getElementById('edit-modal-title').textContent = '과제 수정';
+      document.getElementById('edit-modal-body').innerHTML = `
+        <form id="modal-edit-sub-form" class="space-y-3 text-xs">
+          <input type="text" id="edit-sub-title" value="${escapeHtml(sub.title)}" required class="w-full px-3 py-2 border rounded-lg text-sm">
+          <textarea id="edit-sub-content" rows="5" required class="w-full px-3 py-2 border rounded-lg font-mono text-sm">${escapeHtml(sub.content)}</textarea>
+          <div class="flex justify-end gap-2">
+            <button type="button" onclick="closeEditModal()" class="px-4 py-2 border rounded-lg">취소</button>
+            <button type="submit" class="px-4 py-2 bg-indigo-600 text-white font-bold rounded-lg">수정 완료</button>
+          </div>
+        </form>
+      `;
+      document.getElementById('edit-modal').classList.remove('hidden');
+
+      document.getElementById('modal-edit-sub-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        sub.title = document.getElementById('edit-sub-title').value.trim();
+        sub.content = document.getElementById('edit-sub-content').value;
+        saveState();
+        closeEditModal();
+        renderRubric();
+      });
+    }
+
+    function deleteSubmission(sid) {
+      const sub = state.submissions.find(x => x.id === sid);
+      if (!sub || !canModify(sub.authorId)) return;
+      if (!confirm('이 과제를 삭제하시겠습니까?')) return;
+      state.submissions = state.submissions.filter(x => x.id !== sid);
+      saveState();
+      renderRubric();
+    }
+
+    function submitRubricReview(e, sid) {
+      e.preventDefault();
+      const user = getCurrentUserObj();
+      if (!user) return;
+      const sub = state.submissions.find(s => s.id === sid);
+      if (!sub) return;
+
+      sub.reviews.push({
+        id: 'rev-' + Date.now(),
+        reviewerId: user.id,
+        reviewerName: user.name,
+        completeness: parseInt(document.getElementById('rub-c-' + sid).value, 10),
+        logic: parseInt(document.getElementById('rub-l-' + sid).value, 10),
+        security: parseInt(document.getElementById('rub-s-' + sid).value, 10),
+        comment: document.getElementById('rub-msg-' + sid).value.trim()
+      });
+      saveState();
+      renderRubric();
+    }
+
+    function deleteRubricReview(sid, rid) {
+      const sub = state.submissions.find(s => s.id === sid);
+      const rev = sub && sub.reviews ? sub.reviews.find(r => r.id === rid) : null;
+      if (!rev || !canModify(rev.reviewerId)) return;
+      sub.reviews = sub.reviews.filter(r => r.id !== rid);
+      saveState();
+      renderRubric();
+    }
+
+    // ==================== 10. 플래시카드 암기장 탭 ====================
+    function renderFlashcard() {
+      const user = getCurrentUserObj();
+      const cards = state.flashcards;
+      if (currentCardIndex >= cards.length) currentCardIndex = 0;
+      const cur = cards[currentCardIndex];
+
+      document.getElementById('tab-flashcard').innerHTML = `
+        <div class="max-w-2xl mx-auto space-y-6">
+          <div class="text-center space-y-1">
+            <h2 class="text-xl font-bold text-slate-900">플래시카드 개념 암기장</h2>
+            <p class="text-xs text-slate-500">카드를 클릭하면 앞면(질문)과 뒷면(정답)이 전환됩니다.</p>
+          </div>
+          ${cur ? `
+            <div onclick="flipCard()" class="bg-white border-2 ${isCardFlipped ? 'border-emerald-500' : 'border-indigo-500'} rounded-2xl p-10 min-h-[200px] flex flex-col items-center justify-center text-center cursor-pointer shadow-md select-none relative">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded bg-slate-100 text-slate-600 mb-2">${escapeHtml(cur.category)} (${currentCardIndex + 1} /${cards.length})</span>
+              <div class="text-xs font-bold ${isCardFlipped ? 'text-emerald-600' : 'text-indigo-600'} mb-2">${isCardFlipped ? '[뒷면 - 정답]' : '[앞면 - 질문]'}</div>
+              <p class="text-lg font-bold text-slate-900">${escapeHtml(isCardFlipped ? cur.back : cur.front)}</p>
+              ${canModify(cur.authorId) ? `
+                <button onclick="event.stopPropagation(); deleteFlashcard('${cur.id}')" class="absolute top-3 right-4 text-xs text-red-500 hover:underline font-bold">카드 삭제</button>
+              ` : ''}
+            </div>
+            <div class="flex justify-between">
+              <button onclick="prevCard()" class="px-4 py-2 rounded-lg border bg-white text-xs font-bold">이전</button>
+              <button onclick="flipCard()" class="px-4 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold">카드 뒤집기</button>
+              <button onclick="nextCard()" class="px-4 py-2 rounded-lg border bg-white text-xs font-bold">다음</button>
+            </div>
+          ` : '<div class="bg-white p-8 rounded-xl border border-slate-200 text-center text-xs text-slate-400">등록된 플래시카드가 없습니다.</div>'}
+          <form id="fc-form" class="bg-white p-4 rounded-xl border border-slate-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+            <input type="text" id="fc-cat" required placeholder="분류" class="px-3 py-2 border rounded-lg">
+            <input type="text" id="fc-front" required placeholder="앞면 질문" class="px-3 py-2 border rounded-lg">
+            <input type="text" id="fc-back" required placeholder="뒷면 정답" class="px-3 py-2 border rounded-lg">
+            <button type="submit" class="sm:col-span-3 py-2 bg-slate-900 text-white font-bold rounded-lg">플래시카드 등록</button>
+          </form>
+        </div>
+      `;
+
+      document.getElementById('fc-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (!user) return;
+        state.flashcards.push({
+          id: 'fc-' + Date.now(),
+          authorId: user.id,
+          category: document.getElementById('fc-cat').value.trim(),
+          front: document.getElementById('fc-front').value.trim(),
+          back: document.getElementById('fc-back').value.trim()
+        });
+        currentCardIndex = state.flashcards.length - 1;
+        isCardFlipped = false;
+        saveState();
+        renderFlashcard();
+      });
+    }
+
+    function flipCard() { isCardFlipped = !isCardFlipped; renderFlashcard(); }
+    function prevCard() { isCardFlipped = false; if (state.flashcards.length) currentCardIndex = (currentCardIndex - 1 + state.flashcards.length) % state.flashcards.length; renderFlashcard(); }
+    function nextCard() { isCardFlipped = false; if (state.flashcards.length) currentCardIndex = (currentCardIndex + 1) % state.flashcards.length; renderFlashcard(); }
+    function deleteFlashcard(fid) {
+      const c = state.flashcards.find(x => x.id === fid);
+      if (!c || !canModify(c.authorId)) return;
+      state.flashcards = state.flashcards.filter(x => x.id !== fid);
+      currentCardIndex = 0;
+      saveState();
+      renderFlashcard();
+    }
+
+    // ==================== 11. 수료증 및 리포트 탭 ====================
+    function renderCertificate() {
+      const user = getCurrentUserObj();
+      if (!user) return;
+      const completedCourses = state.courses.filter(c => c.lectures.length > 0 && c.lectures.every(l => l.completedBy.includes(user.id)));
+      const quizRecord = state.quizScores ? state.quizScores[user.id] : null;
+      const certId = 'CERT-' + user.id.toUpperCase() + '-' + new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+      const logoHtml = state.config.logoDataUrl
+        ? '<img src="' + state.config.logoDataUrl + '" class="w-14 h-14 object-cover rounded-xl mx-auto">'
+        : '<div class="w-14 h-14 rounded-xl bg-indigo-600 text-white flex items-center justify-center mx-auto">' + DEFAULT_SVG_LOGO + '</div>';
+
+      document.getElementById('tab-cert').innerHTML = `
+        <div class="flex justify-between items-center no-print">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">이수 수료증 및 학습 리포트</h2>
+            <p class="text-xs text-slate-500">완강한 강의 과정과 보유 뱃지가 증명서에 기록됩니다.</p>
+          </div>
+          <button onclick="window.print()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow">
+            <i class="fa-solid fa-print mr-1.5"></i>수료증 인쇄 / PDF 저장
+          </button>
+        </div>
+
+        <div id="certificate-print-area" class="bg-white p-8 sm:p-12 rounded-2xl border-4 border-double border-slate-800 shadow-lg max-w-3xl mx-auto text-center space-y-6">
+          <div class="space-y-2">
+            ${logoHtml}
+            <div class="text-xs font-bold uppercase tracking-widest text-slate-400">CERTIFICATE OF COMPLETION</div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900">${escapeHtml(state.config.name)} 이수 증명서</h1>
+            <div class="text-xs font-mono text-slate-500">검증 번호: ${certId}</div>
+          </div>
+
+          <div class="py-4 border-y border-slate-200 space-y-2">
+            <div class="text-xs text-slate-500">성명 (아이디)</div>
+            <div class="text-2xl font-bold text-indigo-700">${escapeHtml(user.name)} (${escapeHtml(user.id)})</div>
+            <div class="flex justify-center flex-wrap gap-1.5 pt-2">
+              ${renderEquippedBadgesHtml(user)}
+            </div>
+          </div>
+
+          <div class="text-left space-y-3 bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs">
+            <div class="font-bold text-slate-800 text-sm">1. 수료 완료 과정 (${completedCourses.length}개 과정)</div>
+            ${completedCourses.length > 0 ? `
+              <ul class="list-disc pl-5 space-y-1 text-slate-700">
+                ${completedCourses.map(c => `<li><strong>[${escapeHtml(c.category)}] ${escapeHtml(c.title)}</strong> — 100% 완강</li>`).join('')}
+              </ul>
+            ` : '<p class="text-slate-500">아직 100% 완강한 강의가 없습니다.</p>'}
+            <div class="font-bold text-slate-800 text-sm pt-2">2. 평가 및 뱃지 기록</div>
+            <ul class="list-disc pl-5 space-y-1 text-slate-700">
+              <li>최근 퀴즈 성취도: ${quizRecord ? `${quizRecord.score}점 (수준: ${quizRecord.level})` : '미응시'}</li>
+              <li>획득한 뱃지 수: ${user.ownedBadges.length}개</li>
+            </ul>
+          </div>
+
+          <div class="pt-4 flex justify-between items-end text-xs text-slate-500">
+            <div>발급 일자: ${new Date().toISOString().slice(0, 10)}</div>
+            <div class="font-bold text-sm text-slate-900">${escapeHtml(state.config.name)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== 12. 어드민 전용 통합 관리 패널 ====================
+    function renderAdminPanel() {
+      if (!isAdminUser()) return;
+
+      const usersRowsHtml = state.users.map(u => `
+        <tr class="border-b border-slate-100 text-xs">
+          <td class="py-2.5 px-3 font-bold">${escapeHtml(u.id)}</td>
+          <td class="py-2.5 px-3">${escapeHtml(u.name)}</td>
+          <td class="py-2.5 px-3">
+            <select onchange="changeUserRole('${u.id}', this.value)" class="px-2 py-1 border rounded text-xs font-semibold">
+              <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>어드민 (Admin)</option>
+              <option value="instructor" ${u.role === 'instructor' ? 'selected' : ''}>강사 (Instructor)</option>
+              <option value="student" ${u.role === 'student' ? 'selected' : ''}>학생 (Student)</option>
+            </select>
+          </td>
+          <td class="py-2.5 px-3">${u.ownedBadges.length}개</td>
+          <td class="py-2.5 px-3">
+            ${u.id !== state.currentUser ? `<button onclick="deleteUserAccount('${u.id}')" class="text-red-600 hover:underline font-bold">계정 삭제</button>` : '<span class="text-slate-400">본인</span>'}
+          </td>
+        </tr>
+      `).join('');
+
+      const badgeOptionsHtml = state.badges.map(b => `<option value="${b.id}">${escapeHtml(b.name)}</option>`).join('');
+      const userOptionsHtml = state.users.map(u => `<option value="${u.id}">${escapeHtml(u.name)} (${escapeHtml(u.id)})</option>`).join('');
+
+      document.getElementById('tab-admin').innerHTML = `
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">어드민 통합 시스템 관리</h2>
+            <p class="text-xs text-slate-500">회원 권한(어드민/강사/학생) 변경, 뱃지 생성 및 부여, 초기 셋업 재구성을 수행합니다.</p>
+          </div>
+          <button onclick="showSetupView()" class="px-4 py-2 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700">
+            <i class="fa-solid fa-sliders mr-1"></i>초기 셋업 화면 열기
+          </button>
+        </div>
+
+        <!-- 전체 회원 및 권한 제어 -->
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <h3 class="text-sm font-bold text-slate-900">전체 회원 목록 및 권한(Role) 제어</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="border-b bg-slate-50 text-[11px] text-slate-500">
+                  <th class="py-2 px-3">아이디</th>
+                  <th class="py-2 px-3">이름</th>
+                  <th class="py-2 px-3">권한 변경</th>
+                  <th class="py-2 px-3">보유 뱃지</th>
+                  <th class="py-2 px-3">관리</th>
+                </tr>
+              </thead>
+              <tbody>${usersRowsHtml}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- 커스텀 뱃지 생성 및 회원에게 부여 -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-900">신규 뱃지 생성 및 특정 회원 수여</h3>
+            <form id="admin-create-badge-form" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <input type="text" id="ab-name" required placeholder="뱃지 이름" class="px-3 py-2 border rounded-lg">
+              <input type="text" id="ab-desc" required placeholder="뱃지 설명" class="px-3 py-2 border rounded-lg">
+              <select id="ab-color" class="px-3 py-2 border rounded-lg">
+                <option value="bg-indigo-600 text-white">인디고</option>
+                <option value="bg-emerald-600 text-white">에메랄드</option>
+                <option value="bg-rose-600 text-white">로즈</option>
+                <option value="bg-amber-600 text-white">앰버</option>
+              </select>
+              <button type="submit" class="sm:col-span-3 py-2 bg-slate-900 text-white font-bold rounded-lg">새 뱃지 등록</button>
+            </form>
+
+            <form id="admin-grant-badge-form" class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs pt-3 border-t">
+              <select id="grant-user" class="px-3 py-2 border rounded-lg">${userOptionsHtml}</select>
+              <select id="grant-badge" class="px-3 py-2 border rounded-lg">${badgeOptionsHtml}</select>
+              <button type="submit" class="py-2 bg-indigo-600 text-white font-bold rounded-lg">뱃지 수여하기</button>
+            </form>
+          </div>
+
+          <!-- 기준선(Baseline) 스냅샷 백업 및 롤백 -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <h3 class="text-sm font-bold text-slate-900">기준선(Baseline) 백업 및 롤백(Rollback)</h3>
+            <div class="p-3.5 rounded-xl bg-slate-50 border text-xs">
+              <span class="text-slate-500">최근 기준선 저장 시각:</span>
+              <span class="font-mono font-bold text-indigo-600 ml-2">${escapeHtml(state.baselineTimestamp)}</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <button onclick="saveBaselineSnapshot()" class="py-2.5 px-3 bg-slate-900 text-white font-bold rounded-lg">현재 상태 기준선 저장</button>
+              <button onclick="rollbackToBaseline()" class="py-2.5 px-3 bg-red-600 text-white font-bold rounded-lg">이전 기준선으로 롤백</button>
+              <button onclick="exportConfigJson()" class="py-2.5 px-3 border border-slate-300 font-bold rounded-lg">JSON 파일 내보내기</button>
+              <label class="py-2.5 px-3 border border-slate-300 font-bold rounded-lg text-center cursor-pointer">
+                JSON 파일 불러오기
+                <input type="file" accept=".json" onchange="importConfigJson(event)" class="hidden">
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('admin-create-badge-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.badges.push({
+          id: 'badge-' + Date.now(),
+          name: document.getElementById('ab-name').value.trim(),
+          desc: document.getElementById('ab-desc').value.trim(),
+          color: document.getElementById('ab-color').value
+        });
+        saveState();
+        renderAdminPanel();
+      });
+
+      document.getElementById('admin-grant-badge-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const targetUid = document.getElementById('grant-user').value;
+        const targetBid = document.getElementById('grant-badge').value;
+        const targetUser = state.users.find(u => u.id === targetUid);
+        if (targetUser && !targetUser.ownedBadges.includes(targetBid)) {
+          targetUser.ownedBadges.push(targetBid);
+          saveState();
+          alert('해당 회원에게 뱃지를 수여했습니다.');
+          renderAdminPanel();
+        } else {
+          alert('이미 해당 뱃지를 보유하고 있습니다.');
+        }
+      });
+    }
+
+    function changeUserRole(uid, newRole) {
+      if (!isAdminUser()) return;
+      if (!['admin', 'instructor', 'student'].includes(newRole)) return;
+      const target = state.users.find(u => u.id === uid);
+      if (!target) return;
+      target.role = newRole;
+      saveState();
+      renderHeader();
+      renderAdminPanel();
+    }
+
+    function deleteUserAccount(uid) {
+      if (!isAdminUser()) return;
+      if (uid === state.currentUser) return;
+      if (!confirm('해당 회원 계정을 삭제하시겠습니까?')) return;
+      state.users = state.users.filter(u => u.id !== uid);
+      saveState();
+      renderAdminPanel();
+    }
+
+    function saveBaselineSnapshot() {
+      state.baselineTimestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
+      saveState();
+      try { localStorage.setItem(BASELINE_KEY, JSON.stringify(state)); } catch (e) {}
+      alert('현재 상태가 기준선(Baseline)으로 저장되었습니다.');
+      renderAdminPanel();
+    }
+
+    function rollbackToBaseline() {
+      const savedBase = localStorage.getItem(BASELINE_KEY);
+      if (!savedBase) { alert('저장된 기준선이 없습니다.'); return; }
+      if (!confirm('이전 기준선(Baseline) 상태로 롤백하시겠습니까?')) return;
+      state = JSON.parse(savedBase);
+      saveState();
+      showAppView();
+    }
+
+    function exportConfigJson() {
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
+      const a = document.createElement('a');
+      a.href = dataStr;
+      a.download = 'lms-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+      a.click();
+    }
+
+    function importConfigJson(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const parsed = JSON.parse(ev.target.result);
+          if (parsed && parsed.config && parsed.users) {
+            state = parsed;
+            saveState();
+            showAppView();
+          }
+        } catch (err) {
+          alert('유효하지 않은 JSON 파일입니다.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function closeEditModal() {
+      document.getElementById('edit-modal').classList.add('hidden');
+    }
+
+    // ==================== 13. 로그인 / 회원가입 (어드민 노출 없음) ====================
+    function initAuthListeners() {
+      document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('login-id').value.trim();
+        const pw = document.getElementById('login-pw').value.trim();
+        const inputHash = computeHash(pw);
+
+        const found = state.users.find(u => u.id === id && u.pwHash === inputHash);
+        if (!found) {
+          alert('아이디 또는 비밀번호가 일치하지 않습니다.');
+          return;
+        }
+        state.currentUser = found.id;
+        saveState();
+        closeAuthModal();
+        showAppView();
+      });
+
+      document.getElementById('register-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('reg-name').value.trim();
+        const id = document.getElementById('reg-id').value.trim();
+        const pw = document.getElementById('reg-pw').value.trim();
+        const selectedRole = document.getElementById('reg-role').value;
+
+        // 회원가입 시 오직 instructor 또는 student만 허용 (admin 차단)
+        const role = (selectedRole === 'instructor') ? 'instructor' : 'student';
+
+        if (state.users.some(u => u.id === id)) {
+          alert('이미 사용 중인 아이디입니다.');
+          return;
+        }
+        state.users.push({
+          id: id,
+          pwHash: computeHash(pw),
+          name: name,
+          role: role,
+          ownedBadges: [],
+          equippedBadges: [],
+          sandboxRuns: 0
+        });
+        state.currentUser = id;
+        saveState();
+        closeAuthModal();
+        showAppView();
+      });
+    }
+
+    function openAuthModal() {
+      document.getElementById('login-id').value = '';
+      document.getElementById('login-pw').value = '';
+      document.getElementById('auth-modal').classList.remove('hidden');
+      toggleAuthMode('login');
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+    }
+
+    function toggleAuthMode(mode) {
+      if (mode === 'register') {
+        document.getElementById('login-form').classList.add('hidden');
+        document.getElementById('register-form').classList.remove('hidden');
+        document.getElementById('auth-modal-title').textContent = '회원가입 (학생 / 강사)';
+      } else {
+        document.getElementById('register-form').classList.add('hidden');
+        document.getElementById('login-form').classList.remove('hidden');
+        document.getElementById('auth-modal-title').textContent = '로그인';
+      }
+    }
+  </script>
+</body>
+</html>
